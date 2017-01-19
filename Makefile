@@ -17,10 +17,10 @@ clean: sweep bleach
 	$(info cleaned)
 .PHONY: sweep
 sweep:
-	@rm -rf tmp
 	$(info swept)
 .PHONY: bleach
 bleach:
+	@rm -rf tmp
 	$(info bleached)
 
 # DEPENDANCIES

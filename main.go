@@ -9,24 +9,31 @@ import (
 	"io/ioutil"
 )
 
+var chargesCount = prometheus.NewCounter(prometheus.CounterOpts{
+	Name: "stripe_charges_count",
+	Help: "Number of charges processed over stripe",
+})
+
 var customersCount = prometheus.NewCounter(prometheus.CounterOpts{
 	Name: "stripe_customers_count",
 	Help: "Number of stripe customers registered on stripe",
 })
 
 func webhook(c *gin.Context) {
-	data := getBody(c)["data"].(map[string]interface{})["object"].(map[string]interface{})
-	if data["customer"] != nil {
+	body := getBody(c)
+	event := body["type"].(string)
+	switch event {
+	case "charge.succeeded":
+		chargesCount.Inc()
+	case "customer.created":
 		customersCount.Inc()
 	}
-	dataRaw, _ := json.Marshal(data)
-	fmt.Println("*********************")
-	fmt.Println(string(dataRaw))
-	fmt.Println("---------------------")
-	c.JSON(200, data)
+	fmt.Println("Event: " + event)
+	c.JSON(200, body)
 }
 
 func init() {
+	prometheus.MustRegister(chargesCount)
 	prometheus.MustRegister(customersCount)
 }
 
