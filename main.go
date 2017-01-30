@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/stripe/stripe-go"
+	"github.com/stripe/stripe-go/charge"
 	"gopkg.in/gin-gonic/gin.v1"
 	"io/ioutil"
 )
@@ -18,6 +20,17 @@ var customersCount = prometheus.NewCounter(prometheus.CounterOpts{
 	Name: "stripe_customers_count",
 	Help: "Number of stripe customers registered on stripe",
 })
+
+func countCharges() {
+	params := &stripe.ChargeListParams{}
+	i := charge.List(params)
+	fmt.Println("****************************")
+	count := 0
+	for i.Next() {
+		count++
+	}
+	fmt.Println(count)
+}
 
 func webhook(c *gin.Context) {
 	body := getBody(c)
@@ -39,6 +52,8 @@ func init() {
 
 func main() {
 	r := gin.Default()
+	stripe.Key = "sk_live_8UqNzhERSTGEFfEd4r3wUfGL"
+	countCharges()
 	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
 	r.POST("/webhook", webhook)
 	r.Run()
